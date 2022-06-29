@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 
 import Card from '../UI/Card/Card';
 import classes from './Login.module.css';
 import Button from '../UI/Button/Button';
 
-const Login = (props) => {
-  const [enteredEmail, setEnteredEmail] = useState('');
-  const [emailIsValid, setEmailIsValid] = useState();
+// reducer function can be created outside of the component function scope, as it doesn't rely on anything defined within the function.This function can also just be called within the useReducer call but this makes everything easier to read, basically.
+const emailReducer = (state, action) => {
+  return { value: '', isValid: false };
+};
+
+const Login = props => {
+  // const [enteredEmail, setEnteredEmail] = useState('');
+  // const [emailIsValid, setEmailIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
+
+  const [emailState, dispatchEmail] = useReducer(emailReducer, { value: '', isValid: false });
 
   useEffect(() => {
     const identifier = setTimeout(() => {
@@ -22,38 +29,39 @@ const Login = (props) => {
     };
   }, [enteredEmail, enteredPassword]);
 
-  const emailChangeHandler = (event) => {
+  const emailChangeHandler = event => {
     setEnteredEmail(event.target.value);
   };
 
-  const passwordChangeHandler = (event) => {
+  const passwordChangeHandler = event => {
     setEnteredPassword(event.target.value);
 
-    setFormIsValid(event.target.value.trim().length > 6 && enteredEmail.includes('@'));
+    setFormIsValid(event.target.value.trim().length > 6 && emailState.isValid);
   };
 
   const validateEmailHandler = () => {
-    setEmailIsValid(enteredEmail.includes('@'));
+    setEmailIsValid(emailState.isValid);
   };
 
   const validatePasswordHandler = () => {
     setPasswordIsValid(enteredPassword.trim().length > 6);
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = event => {
     event.preventDefault();
-    props.onLogin(enteredEmail, enteredPassword);
+    props.onLogin(emailState.value, enteredPassword);
   };
 
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
-        <div className={`${classes.control} ${emailIsValid === false ? classes.invalid : ''}`}>
+        <div
+          className={`${classes.control} ${emailState.isValid === false ? classes.invalid : ''}`}>
           <label htmlFor='email'>E-Mail</label>
           <input
             type='email'
             id='email'
-            value={enteredEmail}
+            value={emailState.value}
             onChange={emailChangeHandler}
             onBlur={validateEmailHandler}
           />
